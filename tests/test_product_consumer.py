@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 # Define where to run the mock server, for the consumer to connect to. These
 # are the defaults so may be omitted
 PACT_MOCK_HOST = "localhost"
-PACT_MOCK_PORT = 1234
+PACT_MOCK_PORT = 2345
 
 # Where to output the JSON Pact files created by any tests
 PACT_DIR = os.path.dirname(os.path.realpath(__file__)) + "/pacts"
