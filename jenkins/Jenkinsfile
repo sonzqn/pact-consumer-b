@@ -61,7 +61,7 @@ pipeline {
       steps {
         script {
           if (params.PENDING_PROVIDER == '') {
-            sh ".${PACT_DOCKER_CLI} can-i-deploy --to SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT} ${PACT_RETRY_OPTION}"
+            sh "${PACT_DOCKER_CLI} can-i-deploy --to SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT} ${PACT_RETRY_OPTION}"
           } else {//Can I deploy on SIT - Ignore pending Provider
             sh "${PACT_DOCKER_CLI} can-i-deploy --to SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT} --ignore=${PENDING_PROVIDER} ${PACT_RETRY_OPTION}"
           }
