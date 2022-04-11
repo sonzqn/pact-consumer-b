@@ -15,11 +15,14 @@ pipeline {
     PENDING_PROVIDER_RUN_CONTRACT_JOB = "${PENDING_PROVIDER}-run-contract-tests"
     //PACT_FOLDER = env.WORKSPACE for real jenkins (non docker)
     PACT_FOLDER = env.WORKSPACE.replace("var", "/home/sonnd4/Documents/GitHub/infrastructure/jenkins")
+    PACT_BROKER_URL = "http://localhost:9292"
+    PACT_BROKER_USERNAME = "pb_username"
+    PACT_BROKER_PASSWORD = "pb_password"
     PACT_DOCKER_CLI = "sudo docker run -v ${PACT_FOLDER}/tests/pacts:/pacts:ro \
-                       -e PACT_BROKER_BASE_URL='http://localhost:9292' \
-                       -e PACT_BROKER_USERNAME='pb_username' \
-                       -e PACT_BROKER_PASSWORD='pb_password' \
-                       --network host --rm pactfoundation/pact-cli:0.50.0.21 broker"
+                           -e PACT_BROKER_BASE_URL='${PACT_BROKER_URL}' \
+                           -e PACT_BROKER_USERNAME='${PACT_BROKER_USERNAME}' \
+                           -e PACT_BROKER_PASSWORD='${PACT_BROKER_PASSWORD}' \
+                           --network host --rm pactfoundation/pact-cli:0.50.0.21 broker"
     PACT_RETRY_OPTION = "--retry-while-unknown=10 --retry-interval=5"
   }
 
