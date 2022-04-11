@@ -31,6 +31,8 @@ pipeline {
   stages {
     stage('Build & Test') {
       steps {
+        sh 'sudo apt-get update'
+        sh 'sudo apt-get install python3.6'
         sh 'sudo pip install -r requirements.txt'
         sh 'sudo pytest tests'
       }
