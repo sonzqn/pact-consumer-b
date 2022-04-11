@@ -15,12 +15,12 @@ pipeline {
   }
 
   environment {
-    SERVICE_NAME = "consumer-a"
+    SERVICE_NAME = "consumer-b"
     BRANCH_NAME = env.GIT_BRANCH.replace("origin/", "")
+    PENDING_PROVIDER_RUN_CONTRACT_JOB = "${PENDING_PROVIDER}-run-contract-tests"
     //PACT_FOLDER = env.WORKSPACE for real jenkins (non docker)
     PACT_FOLDER = env.WORKSPACE.replace("var", "/home/sonnd4/Documents/GitHub/infrastructure/jenkins")
-    PENDING_PROVIDER_RUN_CONTRACT_JOB = "${PENDING_PROVIDER}-run-contract-tests"
-    PACT_DOCKER_CLI = "sudo docker run -v ${PACT_FOLDER}/target/pacts:/pacts:ro \
+    PACT_DOCKER_CLI = "sudo docker run -v ${PACT_FOLDER}/tests/pacts:/pacts:ro \
                        -e PACT_BROKER_BASE_URL='http://localhost:9292' \
                        -e PACT_BROKER_USERNAME='pb_username' \
                        -e PACT_BROKER_PASSWORD='pb_password' \
@@ -31,7 +31,8 @@ pipeline {
   stages {
     stage('Build & Test') {
       steps {
-        sh 'mvn clean verify'
+        sh 'pip install -r requirements.txt'
+        sh 'pytest tests'
       }
     }
     stage('[As Consumer] Publish Pact Contract') {

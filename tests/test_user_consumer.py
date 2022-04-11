@@ -32,8 +32,8 @@ def pact(request):
     """Setup a Pact Consumer, which provides the Provider mock service. This
     will generate and optionally publish Pacts to the Pact Broker"""
 
-    pact = Consumer("UserServiceClient").has_pact_with(
-        Provider("UserService"),
+    pact = Consumer("consumer-b").has_pact_with(
+        Provider("provider-y"),
         host_name=PACT_MOCK_HOST,
         port=PACT_MOCK_PORT,
         pact_dir=PACT_DIR,
