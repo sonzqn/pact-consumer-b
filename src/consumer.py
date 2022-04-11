@@ -11,6 +11,14 @@ class User(object):
         self.name = name
         self.created_on = created_on
 
+class Product(object):
+    """Define the basic User data we expect to receive from the User Provider."""
+
+    def __init__(self, code: str, name: str, id: int, type: str):
+        self.code = code
+        self.name = name
+        self.id = id
+        self.type = type
 
 class UserConsumer(object):
     """Demonstrate some basic functionality of how the User Consumer will interact
@@ -38,3 +46,21 @@ class UserConsumer(object):
         created_on = datetime.strptime(response.json()["created_on"], "%Y-%m-%dT%H:%M:%S")
 
         return User(name, created_on)
+
+    def get_product(self, product_id: int) -> Optional[Product]:
+        """Fetch a product object by product_id from the server.
+
+        :param product_id: Product id to search for
+        :return: Product details if found, None if not found
+        """
+        uri = self.base_uri + "/product/" + str(product_id)
+        response = requests.get(uri)
+        if response.status_code == 404:
+            return None
+
+        code = response.json()["code"]
+        name = response.json()["name"]
+        id = response.json()["id"]
+        type = response.json()["type"]
+
+        return Product(code, name, id, type)

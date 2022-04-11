@@ -59,21 +59,14 @@ def pact(request):
     # to the Pact Broker
     pact.stop_service()
 
-    # Given we have cleanly stopped the service, we do not want to re-submit the
-    # Pacts to the Pact Broker again atexit, since the Broker may no longer be
-    # available if it has been started using the --run-broker option, as it will
-    # have been torn down at that point
-    pact.publish_to_broker = False
-
 
 def test_get_user_non_admin(pact, consumer):
     # Define the Matcher; the expected structure and content of the response
     expected = {
-        "name": "UserA",
-        "id": Format().uuid,
-        "created_on": Term(r"\d+-\d+-\d+T\d+:\d+:\d+", "2016-12-15T20:16:01"),
-        "ip_address": Format().ip_address,
-        "admin": False,
+        "code": Like("CC_001"),
+        "name": Like("28 Degrees"),
+        "id": Like(10),
+        "type": Like("CREDIT_CARD"),
     }
 
     # Define the expected behaviour of the Provider. This determines how the
@@ -82,40 +75,19 @@ def test_get_user_non_admin(pact, consumer):
     # return the EXACT content where defined, e.g. UserA for name, and SOME
     # appropriate content e.g. for ip_address.
     (
-        pact.given("UserA exists and is not an administrator")
-        .upon_receiving("a request for UserA")
-        .with_request("get", "/users/UserA")
+        pact.given("product with ID 10 exists")
+        .upon_receiving("Get product with ID 10")
+        .with_request("get", "/product/10")
         .will_respond_with(200, body=Like(expected))
     )
 
     with pact:
         # Perform the actual request
-        user = consumer.get_user("UserA")
+        user = consumer.get_product(10)
 
         # In this case the mock Provider will have returned a valid response
-        assert user.name == "UserA"
+        assert user.id == 10
 
         # Make sure that all interactions defined occurred
         pact.verify()
 
-
-def test_get_non_existing_user(pact, consumer):
-    # Define the expected behaviour of the Provider. This determines how the
-    # Pact mock provider will behave. In this case, we expect a 404
-    (
-        pact.given("UserA does not exist")
-        .upon_receiving("a request for UserA")
-        .with_request("get", "/users/UserA")
-        .will_respond_with(404)
-    )
-
-    with pact:
-        # Perform the actual request
-        user = consumer.get_user("UserA")
-
-        # In this case, the mock Provider will have returned a 404 so the
-        # consumer will have returned None
-        assert user is None
-
-        # Make sure that all interactions defined occurred
-        pact.verify()
