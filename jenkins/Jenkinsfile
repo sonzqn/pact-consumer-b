@@ -30,16 +30,9 @@ pipeline {
 
   stages {
     stage('Build & Test') {
-      agent {
-        docker {
-          image 'python:3-alpine'
-        }
-      }
       steps {
-        withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'pip install -r requirements.txt'
-          sh 'pytest tests'
-        }
+        sh 'sudo pip install -r requirements.txt'
+        sh 'sudo pytest tests'
       }
     }
     stage('[As Consumer] Publish Pact Contract') {
