@@ -1,0 +1,99 @@
+#!groovy
+pipeline {
+
+  agent any
+
+  tools {
+    jdk 'jdk 8'
+    maven 'mvn 3.8'
+  }
+
+  parameters {
+    string(name: 'BRANCH', defaultValue: 'master', description: 'Branch to build')
+    string(name: 'PENDING_PROVIDER', defaultValue: '', description: 'Name of Provider makes breaking change')
+    string(name: 'PROVIDER_BRANCH_NAME', defaultValue: '', description: 'Branch name of Provider makes breaking change')
+  }
+
+  environment {
+    SERVICE_NAME = "consumer-a"
+    BRANCH_NAME = env.GIT_BRANCH.replace("origin/", "")
+    //PACT_FOLDER = env.WORKSPACE for real jenkins (non docker)
+    PACT_FOLDER = env.WORKSPACE.replace("var", "/home/sonnd4/Documents/GitHub/infrastructure/jenkins")
+    PENDING_PROVIDER_RUN_CONTRACT_JOB = "${PENDING_PROVIDER}-run-contract-tests"
+    PACT_DOCKER_CLI = "sudo docker run -v ${PACT_FOLDER}/target/pacts:/pacts:ro \
+                       -e PACT_BROKER_BASE_URL='http://localhost:9292' \
+                       -e PACT_BROKER_USERNAME='pb_username' \
+                       -e PACT_BROKER_PASSWORD='pb_password' \
+                       --network host --rm pactfoundation/pact-cli:0.50.0.21 broker"
+    PACT_RETRY_OPTION = "--retry-while-unknown=10 --retry-interval=5"
+  }
+
+  stages {
+    stage('Build & Test') {
+      steps {
+        sh 'mvn clean verify'
+      }
+    }
+    stage('[As Consumer] Publish Pact Contract') {
+      steps {
+        sh "${PACT_DOCKER_CLI} publish /pacts -a ${GIT_COMMIT} -t ${BRANCH_NAME}"
+      }
+    }
+    stage('[Pact] Version & Tag Init') {
+      steps {
+        script {
+          env.SIT_VERSION = sh(script: "${PACT_DOCKER_CLI} describe-version -a ${SERVICE_NAME} -l SIT_ENV | tail -1 | cut -f 1 -d \\|", returnStdout: true).trim()
+          echo "Latest verified SIT version: " + SIT_VERSION
+          if (env.SIT_VERSION == 'Pacticipant version not found' && env.BRANCH_NAME == 'master') {
+            sh "${PACT_DOCKER_CLI} create-or-update-pacticipant --name=${SERVICE_NAME} --main-branch=${BRANCH_NAME} --repository-url=${GIT_URL}"
+            sh "${PACT_DOCKER_CLI} create-version-tag -t SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT}"
+          }
+        }
+      }
+    }
+    stage('Can I deploy on SIT') {
+      steps {
+        script {
+          if (params.PENDING_PROVIDER == '') {
+            sh ".${PACT_DOCKER_CLI} can-i-deploy --to SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT} ${PACT_RETRY_OPTION}"
+          } else {//Can I deploy on SIT - Ignore pending Provider
+            sh "${PACT_DOCKER_CLI} can-i-deploy --to SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT} --ignore=${PENDING_PROVIDER} ${PACT_RETRY_OPTION}"
+          }
+        }
+      }
+    }
+    stage('Can I deploy with Pending Provider') {
+      when {
+        expression { return params.PENDING_PROVIDER != ''; }
+      }
+      steps {
+        script {
+          if (params.PROVIDER_BRANCH_NAME == '') {
+              currentBuild.result = "FAILURE"
+              throw new Exception("PROVIDER_BRANCH_NAME must NOT empty!")
+          }
+          buildResults = build job: env.PENDING_PROVIDER_RUN_CONTRACT_JOB,
+                    parameters: [
+                        string(name: 'pactConsumerName', value: "${SERVICE_NAME}"),
+                        string(name: 'pactConsumerTags', value: "${BRANCH_NAME}"),
+                        string(name: 'PROVIDER_TAG', value: "${PROVIDER_BRANCH_NAME}")
+                    ]
+          sh "${PACT_DOCKER_CLI} can-i-deploy --to ${PROVIDER_BRANCH_NAME} -a ${SERVICE_NAME} -e ${GIT_COMMIT} -a ${PENDING_PROVIDER} -e " + buildResults.getBuildVariables()["PROVIDER_VERSION"]
+        }
+      }
+    }
+    stage('Mark as verified on SIT') {
+      steps {
+        sh "${PACT_DOCKER_CLI} create-version-tag -t SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT}"
+      }
+    }
+    stage('Deploy on SIT') {
+      when {
+        expression { return env.BRANCH_NAME == 'master'; }
+      }
+      steps {
+        sh "${PACT_DOCKER_CLI} record-deployment --environment=SIT -a ${SERVICE_NAME} -e ${GIT_COMMIT}"
+      }
+    }
+  }
+}
