@@ -3,11 +3,6 @@ pipeline {
 
   agent any
 
-  tools {
-    jdk 'jdk 8'
-    maven 'mvn 3.8'
-  }
-
   parameters {
     string(name: 'BRANCH', defaultValue: 'master', description: 'Branch to build')
     string(name: 'PENDING_PROVIDER', defaultValue: '', description: 'Name of Provider makes breaking change')
