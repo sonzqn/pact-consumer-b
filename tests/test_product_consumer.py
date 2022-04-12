@@ -5,8 +5,8 @@ import logging
 import os
 
 import pytest
+from pact import Consumer, Like, Provider
 
-from pact import Consumer, Like, Provider, Term, Format
 from src.consumer import UserConsumer
 
 log = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ def test_get_user_non_admin(pact, consumer):
         ).will_respond_with(
             200,
             headers={
-                "Content-Type": "application/json; charset=UTF-8"
+                "Content-Type": "application/json"
             },
             body=Like(expected)
         )
