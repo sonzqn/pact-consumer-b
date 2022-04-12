@@ -68,7 +68,6 @@ def test_get_user_non_admin(pact, consumer):
         "code": Like("CC_001"),
         "name": Like("28 Degrees"),
         "id": Like(10),
-        "type": Like("CREDIT_CARD"),
     }
 
     # Define the expected behaviour of the Provider. This determines how the

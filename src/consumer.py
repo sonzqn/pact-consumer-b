@@ -14,11 +14,10 @@ class User(object):
 class Product(object):
     """Define the basic User data we expect to receive from the User Provider."""
 
-    def __init__(self, code: str, name: str, id: int, type: str):
+    def __init__(self, code: str, name: str, id: int,):
         self.code = code
         self.name = name
         self.id = id
-        self.type = type
 
 class UserConsumer(object):
     """Demonstrate some basic functionality of how the User Consumer will interact
@@ -63,6 +62,5 @@ class UserConsumer(object):
         code = response.json()["code"]
         name = response.json()["name"]
         id = response.json()["id"]
-        type = response.json()["type"]
 
-        return Product(code, name, id, type)
+        return Product(code, name, id)
