@@ -15,11 +15,13 @@ logging.basicConfig(level=logging.INFO)
 import socket
 from contextlib import closing
 
+
 def find_free_port():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
+
 
 # Define where to run the mock server, for the consumer to connect to. These
 # are the defaults so may be omitted
@@ -76,9 +78,21 @@ def test_get_user_non_admin(pact, consumer):
     # appropriate content e.g. for ip_address.
     (
         pact.given("product with ID 10 exists")
-        .upon_receiving("Get product with ID 10")
-        .with_request("get", "/product/10")
-        .will_respond_with(200, body=Like(expected))
+            .upon_receiving("Get product with ID 10")
+            .with_request(
+            "get",
+            "/product/10",
+            body=None,
+            headers={
+                "Authorization": "Bearer AAABd9yHUjI="
+            }
+        ).will_respond_with(
+            200,
+            headers={
+                "Content-Type": "application/json; charset=UTF-8"
+            },
+            body=Like(expected)
+        )
     )
 
     with pact:
@@ -90,4 +104,3 @@ def test_get_user_non_admin(pact, consumer):
 
         # Make sure that all interactions defined occurred
         pact.verify()
-
