@@ -37,7 +37,7 @@ pipeline {
     }
     stage('Build & Test') {
       steps {
-        sh 'sudo pytest tests'
+        sh 'pytest tests'
       }
     }
     stage('[As Consumer] Publish Pact Contract') {
