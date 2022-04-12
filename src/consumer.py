@@ -54,7 +54,9 @@ class UserConsumer(object):
         :return: Product details if found, None if not found
         """
         uri = self.base_uri + "/product/" + str(product_id)
-        response = requests.get(uri)
+        response = requests.get(uri, headers={
+            "Authorization": "Bearer AAABd9yHUjI="
+        })
         if response.status_code == 404:
             return None
 
