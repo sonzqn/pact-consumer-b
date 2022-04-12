@@ -45,7 +45,7 @@ pipeline {
         sh "${PACT_DOCKER_CLI} publish /pacts -a ${GIT_COMMIT} -t ${BRANCH_NAME}"
       }
     }
-    stage('[Pact] Version & Tag Init') {
+    stage('[Pact] Init Version, Tag & create Webhook') {
       steps {
         script {
           env.SIT_VERSION = sh(script: "${PACT_DOCKER_CLI} describe-version -a ${SERVICE_NAME} -l SIT_ENV | tail -1 | cut -f 1 -d \\|", returnStdout: true).trim()
@@ -53,6 +53,9 @@ pipeline {
           if (env.SIT_VERSION == 'Pacticipant version not found' && env.BRANCH_NAME == 'master') {
             sh "${PACT_DOCKER_CLI} create-or-update-pacticipant --name=${SERVICE_NAME} --main-branch=${BRANCH_NAME} --repository-url=${GIT_URL}"
             sh "${PACT_DOCKER_CLI} create-version-tag -t SIT_ENV -a ${SERVICE_NAME} -e ${GIT_COMMIT}"
+          }
+          dir('jenkins') {
+             sh "bash create_webhook.sh"
           }
         }
       }
