@@ -43,7 +43,7 @@ def pact(request):
     will generate and optionally publish Pacts to the Pact Broker"""
 
     pact = Consumer("consumer-python").has_pact_with(
-        Provider("provider-x"),
+        Provider("provider-java"),
         host_name=PACT_MOCK_HOST,
         port=PACT_MOCK_PORT,
         pact_dir=PACT_DIR,
