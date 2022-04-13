@@ -65,7 +65,6 @@ def pact(request):
 def test_get_user_non_admin(pact, consumer):
     # Define the Matcher; the expected structure and content of the response
     expected = {
-        "code": Like("CC_001"),
         "name": Like("28 Degrees"),
         "id": Like(10),
     }

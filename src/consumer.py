@@ -14,8 +14,7 @@ class User(object):
 class Product(object):
     """Define the basic User data we expect to receive from the User Provider."""
 
-    def __init__(self, code: str, name: str, id: int,):
-        self.code = code
+    def __init__(self, name: str, id: int,):
         self.name = name
         self.id = id
 
@@ -59,8 +58,7 @@ class UserConsumer(object):
         if response.status_code == 404:
             return None
 
-        code = response.json()["code"]
         name = response.json()["name"]
         id = response.json()["id"]
 
-        return Product(code, name, id)
+        return Product(name, id)
