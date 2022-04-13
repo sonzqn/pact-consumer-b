@@ -23,7 +23,7 @@ provider_names=($(echo "$providers" | tr ',' "\n"))
 generate_post_data()
 {
   consumerVersionTags='${pactbroker.consumerVersionTags}'
-  providerName='${pactbroker.providerName}'
+  consumerName='${pactbroker.consumerName}'
   cat <<EOF
 	{
     "consumer": {
@@ -34,7 +34,7 @@ generate_post_data()
     },
     "request": {
       "method": "POST",
-      "url": "${jenkins_url}/job/${provider_name}-run-contract-tests/buildWithParameters?pactConsumerTags=${consumerVersionTags}&pactConsumerName=${providerName}",
+      "url": "${jenkins_url}/job/${provider_name}-run-contract-tests/buildWithParameters?pactConsumerTags=${consumerVersionTags}&pactConsumerName=${consumerName}",
       "headers": {
         "Accept": "application/json",
         "Authorization": "Basic $authorization"
